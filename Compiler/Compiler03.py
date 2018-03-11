@@ -52,6 +52,13 @@ class Interpreter():
             elif self.current_char=='-':
                 self.advance()
                 return Token(MINUS,'-')
+            #乘除法
+            elif self.current_char=='*':
+                self.advance()
+                return Token(MINUS,'*')
+            elif self.current_char=='/':
+                self.advance()
+                return Token(DIV,'/')
             else:
                 self.error()
         return Token(EOF,None)
@@ -74,10 +81,16 @@ class Interpreter():
             token=self.current_token
             if token.type==PLUS:
                 self.eat(PLUS)
-                self.eat(PLUS)
                 result+=self.term()
             elif token.type==MINUS:
                 self.eat(MINUS)
+                result-=self.term()
+            #乘除法
+            elif token.type==MUL:
+                self.eat(MUL)               
+                result*=self.term()
+            elif token.type==DIV:
+                self.eat(DIV)
                 result-=self.term()
             else:
                 self.error()
