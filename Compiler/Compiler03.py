@@ -23,7 +23,7 @@ class Interpreter():
 
     def advance(self):
         self.pos+=1
-        if self.pos>=len(self.pos):
+        if self.pos>=len(self.text):
             self.current_char=None
         else:
             self.current_char=self.text[self.pos]
@@ -55,7 +55,7 @@ class Interpreter():
             #乘除法
             elif self.current_char=='*':
                 self.advance()
-                return Token(MINUS,'*')
+                return Token(MUL,'*')
             elif self.current_char=='/':
                 self.advance()
                 return Token(DIV,'/')
@@ -77,7 +77,7 @@ class Interpreter():
     def expr(self):
         self.current_token=self.get_next_token()
         result=self.term()
-        while self.current_token.type in (PLUS,MINUS):
+        while self.current_token.type in (PLUS,MINUS,MUL,DIV):
             token=self.current_token
             if token.type==PLUS:
                 self.eat(PLUS)
@@ -91,7 +91,7 @@ class Interpreter():
                 result*=self.term()
             elif token.type==DIV:
                 self.eat(DIV)
-                result-=self.term()
+                result/=self.term()
             else:
                 self.error()
         return result
