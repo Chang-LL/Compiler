@@ -1,4 +1,5 @@
-INTEGER,PLUS,MINUS,MUL,DIV,EOF = 'INTEGER','PLUS','MINUS','MUL','DIV','EOF'
+INTEGER,PLUS,MINUS,MUL,DIV,EOF,LPAR,RPAR = 'INTEGER',\
+'PLUS','MINUS','MUL','DIV','EOF','LPAR','RPAR'
 
 class Token():
     def __init__(self, type,value):
@@ -6,7 +7,7 @@ class Token():
         self.value = value
 
     def __str__(self):
-        return f'Token({self.type},{repr(self.value)}'
+        return f'Token({self.type},{repr(self.value)})'
 
     def __repr__(self):
         return self.__str__()
@@ -56,6 +57,13 @@ class Lexer():
             elif self.current_char == '-':
                 self.advance()
                 return Token(MINUS,'-')
+            #括号嵌套 
+            elif self.current_char=='(':
+                self.advance()
+                return Token(LPAR,'(')
+            elif self.current_char==')':
+                self.advance()
+                return Token(RPAR,')')
             else :
                 self.error()
         return Token(EOF,None)
@@ -74,12 +82,20 @@ class Interpreter():
             self.error()
 
     def factor(self):
-        value=self.current_token.value
-        self.eat(INTEGER)
+        #括号嵌套 
+        if self.current_token.type==LPAR:
+            value=self.pare()
+        else:
+            value=self.current_token.value
+            self.eat(INTEGER)
         return value
 
     def term(self):
-        value=self.factor()
+        #括号嵌套 
+        if self.current_token.type==LPAR:
+            value=self.pare()
+        else:           
+            value=self.factor()
         while self.current_token.type in (MUL,DIV):
             if self.current_token.type==MUL:
                 self.eat(MUL)
@@ -90,7 +106,11 @@ class Interpreter():
         return value
 
     def expr(self):
-        value=self.term()
+        #括号嵌套 
+        if self.current_token.type==LPAR:
+            value=self.pare()
+        else:
+            value=self.term()
         while self.current_token.type in (PLUS,MINUS):
             if self.current_token.type==PLUS:
                 self.eat(PLUS)
@@ -99,6 +119,14 @@ class Interpreter():
                 self.eat(MINUS)
                 value-=self.term()
         return value
+    
+    def pare(self):
+        if self.current_token.type == LPAR:
+            self.eat(LPAR)
+            value=self.expr()
+            self.eat(RPAR)
+        return value
+            
 
     def parse(self):
         return self.expr()
