@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>e1258130-532c-4b64-9f54-0c12f020fb6e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Compiler07.py</StartupFile>
+    <StartupFile>Compiler09.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -38,6 +38,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Compiler07.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Compiler08.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Compiler09.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
