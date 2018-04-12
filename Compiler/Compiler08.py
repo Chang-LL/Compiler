@@ -187,10 +187,10 @@ def main():
             print()
             break
 
-        if len(text.strip()):
-            parser=Parser(Lexer(text))
-            interpreter=Interpreter(parser)
-            result=interpreter.interpret()
-            print(result)
+    if len(text.strip()):
+        parser=Parser(Lexer(text))
+        interpreter=Interpreter(parser)
+        result=interpreter.interpret()
+        print(result)
 if __name__=='__main__':
     main()

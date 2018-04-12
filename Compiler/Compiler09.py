@@ -1,6 +1,6 @@
-INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, 
-RPAREN, EOF,DOT,BEGIN,END 
-SEMI,ID,ASSIGN= ('INTEGER', 'PLUS', 'MINUS', 
+(INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, 
+RPAREN, EOF,DOT,BEGIN,END, 
+SEMI,ID,ASSIGN)= ('INTEGER', 'PLUS', 'MINUS', 
                    'MUL', 'DIV', 'LPAREN', 
                    'RPAREN', 'EOF','DOT',
                    'BEGIN','END','SEMI','ID',
@@ -17,6 +17,10 @@ class Token():
     def __repr__(self):
         return self.__str__()
 
+RESERVED_KEYWORDS={
+    'BEGIN':Token('BEGIN','BEGIN'),
+    'END':Token('END','END')}
+
 class Lexer():
     def __init__(self,text):
         self.text = text
@@ -32,6 +36,13 @@ class Lexer():
             self.current_char = None
         else:
             self.current_char = self.text[self.pos]
+    
+    def peek(self):
+        peek_pos=self.pos+1
+        if peek_pos>=len(self.text):
+            return None
+        else:
+            return self.text[peek_pos]
 
     def skip_whitespace(self):
         while self.current_char is not None and self.current_char.isspace():
@@ -44,6 +55,14 @@ class Lexer():
             self.advance()
         return int(value)
 
+    def _id(self):
+        result=''
+        while self.current_char is not None and self.current_char.isalnum():
+            result+=self.current_char
+            self.advance()
+        token=RESERVED_KEYWORDS.get(result,Token(ID,result))
+        return token
+
     def get_next_token(self):
         while self.current_char is not None:
             if self.current_char.isspace():
@@ -51,6 +70,18 @@ class Lexer():
                 continue
             elif self.current_char.isdigit():
                 return Token(INTEGER,self.integer())
+            elif self.current_char.isalpha():
+                return self._id()
+            elif self.current_char==':' and self.peek()=='=':
+                self.advance()
+                self.advance()
+                return Token(ASSIGN,':=')
+            elif self.current_char==';':
+                self.advance()
+                return Token(SEMI,';')
+            elif self.current_char=='.':
+                self.advance()
+                return Token(DOT,'.')
             elif self.current_char == '+':
                 self.advance()
                 return Token(PLUS,'+')
@@ -124,6 +155,11 @@ class Parser():
         else:
             self.error()
 
+    def variable(self):
+        node=Var(self.current_token)
+        self.eat(ID)
+        return node
+    
     def factor(self):
         token=self.current_token
         if token.type==PLUS:
@@ -143,7 +179,7 @@ class Parser():
             self.eat(RPAREN)
             return node
         else:
-            node=self.varible()
+            node=self.variable()
             return node
 
     def term(self):
@@ -167,11 +203,7 @@ class Parser():
             node=BinOp(left=node,op=token,right=self.term())
         return node
 
-    def varible(self):
-        node=Var(self.current_token)
-        self.eat(ID)
-        return node
-    
+
     def empty(self):
         return NoOp()
 
@@ -232,6 +264,7 @@ class NodeVistor():
         raise Exception('No visitor_{} method'.format(type(node).__name__))
 
 class Interpreter(NodeVistor):
+    GLOBAL_SCOPE = {}
     def __init__(self,parser):
         self.parser=parser
     
@@ -263,7 +296,7 @@ class Interpreter(NodeVistor):
         if var is None:
             raise NameError(repr(var_name))
         else:
-            return val
+            return var
 
     def interpret(self):
         tree=self.parser.parse()
@@ -280,15 +313,16 @@ class Interpreter(NodeVistor):
 def main():
     while True:
         try:
-            text=input('spi> ')
+            #text=input('spi> ')
+            text='BEGIN\n\n    BEGIN\n        number := 2;\n        a := number;\n        b := 10 * a + 10 * number / 4;\n        c := a - - b\n    END;\n\n    x := 11;\nEND.\n'         
         except EOFError:
             print()
             break
 
-        if len(text.strip()):
-            parser=Parser(Lexer(text))
-            interpreter=Interpreter(parser)
-            result=interpreter.interpret()
-            print(result)
+    if len(text.strip()):
+        parser=Parser(Lexer(text))
+        interpreter=Interpreter(parser)
+        result=interpreter.interpret()
+        print(result)
 if __name__=='__main__':
     main()
