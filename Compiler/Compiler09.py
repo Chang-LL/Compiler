@@ -313,16 +313,15 @@ class Interpreter(NodeVistor):
 def main():
     while True:
         try:
-            #text=input('spi> ')
+            text=input('spi> ')
             text='BEGIN\n\n    BEGIN\n        number := 2;\n        a := number;\n        b := 10 * a + 10 * number / 4;\n        c := a - - b\n    END;\n\n    x := 11;\nEND.\n'         
         except EOFError:
             print()
             break
-
-    if len(text.strip()):
-        parser=Parser(Lexer(text))
-        interpreter=Interpreter(parser)
-        result=interpreter.interpret()
-        print(result)
+        if len(text.strip()):
+            parser=Parser(Lexer(text))
+            interpreter=Interpreter(parser)
+            result=interpreter.interpret()
+            print(interpreter.GLOBAL_SCOPE)
 if __name__=='__main__':
     main()
