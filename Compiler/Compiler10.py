@@ -1,9 +1,11 @@
 (INTEGER, PLUS, MINUS, MUL, INTEGER_DIV, LPAREN, 
 RPAREN, EOF,DOT,BEGIN,END,SEMI,ID,ASSIGN,COLON,COMMA,
-FLOAT_DIV,VAR,PROGRAM,INTEGER_CONST,REAL_CONST)= ('INTEGER', 'PLUS', 'MINUS', 
+FLOAT_DIV,VAR,PROGRAM,INTEGER_CONST,REAL_CONST,
+REAL)= ('INTEGER', 'PLUS', 'MINUS', 
                    'MUL', 'INTEGER_DIV', 'LPAREN', 'RPAREN', 'EOF','DOT',
                    'BEGIN','END','SEMI','ID','ASSIGN','COLON','COMMA',
-                   'FLOAT_DIV','VAR','PROGRAM','INTEGER_CONST','REAL_CONST')
+                   'FLOAT_DIV','VAR','PROGRAM','INTEGER_CONST','REAL_CONST',
+                   'REAL')
 
 class Token():
     def __init__(self,type,value):
@@ -19,7 +21,7 @@ class Token():
 RESERVED_KEYWORDS={
     'PROGRAM':Token('PROGRAM','PROGRAM'),
     'VAR':Token('VAR','VAR'),
-    'DIV':Token('DIV','DIV'),
+    'DIV':Token('INTEGER_DIV','DIV'),
     'INTEGER':Token('INTEGER','INTEGER'),
     'REAL':Token('REAL','REAL'),
     'BEGIN':Token('BEGIN','BEGIN'),
@@ -48,6 +50,13 @@ class Lexer():
     def skip_whitespace(self):
         while self.current_char is not None and self.current_char.isspace():
             self.advance()
+    def _id(self):
+        result=''
+        while self.current_char is not None and self.current_char.isalnum():
+            result+=self.current_char
+            self.advance()
+        token=RESERVED_KEYWORDS.get(result,Token(ID,result))
+        return token
 
     def number(self):
         result = ''
@@ -65,23 +74,41 @@ class Lexer():
             token=Token('INTEGER_CONST',int(result))
         return token
 
+    def peek(self):
+        peek_pos=self.pos+1
+        if peek_pos>=len(self.text):
+            return None
+        else:
+            return self.text[peek_pos]
+
     def get_next_token(self):
         while self.current_char is not None:
             if self.current_char.isspace():
                 self.skip_whitespace()
                 continue
             elif self.current_char=='{':
-                self.advance()
                 self.skip_comment()
                 continue
             elif self.current_char.isdigit():
                 return self.number()
-            elif self.current_char==':':
+            elif self.current_char.isalpha():
+                return self._id()
+            elif self.current_char==':' :
+                if self.peek()=='=':
+                    self.advance()
+                    self.advance()
+                    return Token(ASSIGN,':=')
                 self.advance()
-                return Token(COLON,':');
+                return Token(COLON,':')
+            elif self.current_char==';':
+                self.advance()
+                return Token(SEMI,';')
             elif self.current_char==',':
                 self.advance()
                 return Token(COMMA,',')
+            elif self.current_char=='.':
+                self.advance()
+                return Token(DOT,'.')
             elif self.current_char == '+':
                 self.advance()
                 return Token(PLUS,'+')
@@ -189,13 +216,15 @@ class Parser():
             return Num(token)
         elif token.type==REAL_CONST:
             self.eat(REAL_CONST)
+            return Num(token)
+
         elif token.type==LPAREN:
             self.eat(LPAREN)
             node=self.expr()
             self.eat(RPAREN)
             return node
         else:
-            node=self.varible()
+            node=self.variable()
             return node
 
     def term(self):
@@ -221,7 +250,7 @@ class Parser():
             node=BinOp(left=node,op=token,right=self.term())
         return node
 
-    def varible(self):
+    def variable(self):
         node=Var(self.current_token)
         self.eat(ID)
         return node
@@ -268,7 +297,7 @@ class Parser():
 
     def program(self):
         self.eat(PROGRAM)
-        var_node=self.varible()
+        var_node=self.variable()
         prog_name=var_node.value
         self.eat(SEMI)
         block_node=self.block()
@@ -278,7 +307,7 @@ class Parser():
 
     def type_spec(self):
         token=self.current_token
-        if self.current_token==INTEGER:
+        if self.current_token.type==INTEGER:
             self.eat(INTEGER)
         else:
             self.eat(REAL)
@@ -288,7 +317,7 @@ class Parser():
     def variable_declaration(self):
         var_nodes=[Var(self.current_token)]
         self.eat(ID)
-        while self.current_token==COMMA:
+        while self.current_token.type==COMMA:
             self.eat(COMMA)
             var_nodes.append(Var(self.current_token))
             self.eat(ID)
@@ -331,6 +360,7 @@ class NodeVistor():
         raise Exception('No visitor_{} method'.format(type(node).__name__))
 
 class Interpreter(NodeVistor):
+    GLOBAL_SCOPE = {}
     def __init__(self,parser):
         self.parser=parser
         
@@ -372,7 +402,8 @@ class Interpreter(NodeVistor):
 
     def visit_Block(self,node):
         for declaration in node.declarations:
-            self.visit(declaration)
+            for var in declaration:
+                self.visit(var)
         self.visit(node.compound_statement)
 
     def visit_VarDecl(self,node):
@@ -392,19 +423,21 @@ class Interpreter(NodeVistor):
             return +self.visit(node.expr)
         elif op==MINUS:
             return -self.visit(node.expr)
-
 def main():
     while True:
         try:
             text=input('spi> ')
+            s=input()
+            while s!='$':
+                text+=s
+                s=input()
         except EOFError:
             print()
             break
-
-    if len(text.strip()):
-        parser=Parser(Lexer(text))
-        interpreter=Interpreter(parser)
-        result=interpreter.interpret()
-        print(result)
-
-
+        if len(text.strip()):
+            parser=Parser(Lexer(text))
+            interpreter=Interpreter(parser)
+            result=interpreter.interpret()
+            print(interpreter.GLOBAL_SCOPE)
+if __name__=='__main__':
+    main()
