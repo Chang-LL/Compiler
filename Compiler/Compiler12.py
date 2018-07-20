@@ -386,7 +386,7 @@ class Parser():
             self.eat(VAR)
             while self.current_token.type==ID:
                 var_decl=self.variable_declaration()
-                declarations.append(var_decl)
+                declarations.extend(var_decl)
                 self.eat(SEMI)
         while self.current_token.type==PROCEDURE:
             self.eat(PROCEDURE)
@@ -463,10 +463,11 @@ class Interpreter(NodeVistor):
         pass
     def visit_Block(self,node):
         for declaration in node.declarations:
-            if type(declaration) is ProcedureDecl:
-                continue
-            for var in declaration:
-                self.visit(var)
+            self.visit(declaration)
+            #if type(declaration) is ProcedureDecl:
+            #   continue
+            #for var in declaration:
+            #    self.visit(var)
         self.visit(node.compound_statement)
 
     def visit_VarDecl(self,node):
@@ -494,10 +495,11 @@ class SymbolTableBuilder(NodeVistor):
 
     def visit_Block(self,node):
         for declaration in node.declarations:
-            if type(declaration) is ProcedureDecl:
-                continue
-            for var in declaration:
-                self.visit(var)
+            self.visit(declaration)
+            #if type(declaration) is ProcedureDecl:
+            #    continue
+            #for var in declaration:
+            #    self.visit(var)
         self.visit(node.compound_statement)
 
     def visit_Program(self,node):

@@ -4,13 +4,15 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>e1258130-532c-4b64-9f54-0c12f020fb6e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Compiler10.py</StartupFile>
+    <StartupFile>Compiler12.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>Compiler</Name>
     <RootNamespace>Compiler</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
+    <InterpreterId>Global|ContinuumAnalytics|Anaconda36-64</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -49,6 +51,15 @@
     <Compile Include="Compiler10.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Compiler11.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Compiler12.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda36-64" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
